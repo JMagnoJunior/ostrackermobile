@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "OS Tracker Mobile",
+    "slug": "ostrackermobile",
+    "scheme": "ostrackermobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ostracker.mobile.dev"
+    },
+    "android": {},
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

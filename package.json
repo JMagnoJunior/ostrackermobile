@@ -1,0 +1,42 @@
+{
+  "name": "ostrackermobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo/AppEntry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "test": "jest"
+  },
+  "dependencies": {
+    "axios": "^1.7.8",
+    "expo": "~54.0.0",
+    "expo-auth-session": "~7.0.10",
+    "expo-dev-client": "~6.0.20",
+    "expo-secure-store": "~15.0.8",
+    "expo-web-browser": "~15.0.10",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-web": "^0.21.0"
+  },
+  "devDependencies": {
+    "@testing-library/react-native": "^13.0.1",
+    "@types/jest": "^29.5.14",
+    "@types/react": "~19.1.10",
+    "babel-preset-expo": "~54.0.0",
+    "jest": "^29.7.0",
+    "jest-expo": "~54.0.0",
+    "react-test-renderer": "19.1.0",
+    "typescript": "~5.9.2"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "testMatch": [
+      "**/*.test.ts",
+      "**/*.test.tsx"
+    ]
+  }
+}
