@@ -65,6 +65,13 @@ export function SecretaryDashboardScreen() {
 
   const [scheduleEditTarget, setScheduleEditTarget] = useState<ScheduleEditTarget>(null);
 
+  type ContactLogTarget = {
+    orderId: string;
+    orderLabel: string;
+  } | null;
+
+  const [contactLogTarget, setContactLogTarget] = useState<ContactLogTarget>(null);
+
   const selectedFilterRef = useRef<DashboardFilter>(selectedFilter);
   const listStateRef = useRef<AsyncState<DashboardOrderPage>>(listState);
   const filterCacheRef = useRef<DashboardFilterCache>(filterCache);
@@ -307,15 +314,28 @@ export function SecretaryDashboardScreen() {
     setScheduleEditTarget(null);
   }, []);
 
+  const handleAddContactLog = useCallback(
+    (item: DashboardOrderItem) => {
+      const orderLabel = `${item.clientName} — ${item.status}`;
+      setContactLogTarget({ orderId: item.id, orderLabel });
+    },
+    [],
+  );
+
+  const handleContactLogModalClose = useCallback(() => {
+    setContactLogTarget(null);
+  }, []);
+
   const renderItem: ListRenderItem<DashboardOrderItem> = useCallback(
     ({ item }) => (
       <OrderListItem
         item={item}
+        onAddContactLog={() => handleAddContactLog(item)}
         onEditSchedule={() => handleEditSchedule(item)}
         selectedFilter={selectedFilter}
       />
     ),
-    [selectedFilter, handleEditSchedule],
+    [selectedFilter, handleEditSchedule, handleAddContactLog],
   );
 
   const listEmptyComponent = useMemo(() => {
@@ -403,6 +423,14 @@ export function SecretaryDashboardScreen() {
           orderId={scheduleEditTarget.orderId}
           orderLabel={scheduleEditTarget.orderLabel}
           visible={scheduleEditTarget !== null}
+        />
+      ) : null}
+      {contactLogTarget ? (
+        <ContactLogModal
+          onClose={handleContactLogModalClose}
+          orderId={contactLogTarget.orderId}
+          orderLabel={contactLogTarget.orderLabel}
+          visible={contactLogTarget !== null}
         />
       ) : null}
     </>
