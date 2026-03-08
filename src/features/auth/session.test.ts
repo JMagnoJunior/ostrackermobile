@@ -2,6 +2,7 @@ import {
   extractRoleFromToken,
   getAuthStateFromSession,
   isSecretaryLikeRole,
+  isSuperusuario,
   normalizeAuthSession,
 } from "./session";
 
@@ -75,5 +76,23 @@ describe("role helpers", () => {
     expect(isSecretaryLikeRole("SECRETARIA")).toBe(true);
     expect(isSecretaryLikeRole("SUPERUSUARIO")).toBe(true);
     expect(isSecretaryLikeRole("TECNICO")).toBe(false);
+  });
+});
+
+describe("isSuperusuario", () => {
+  it("returns true for SUPERUSUARIO", () => {
+    expect(isSuperusuario("SUPERUSUARIO")).toBe(true);
+  });
+
+  it("returns false for SECRETARIA", () => {
+    expect(isSuperusuario("SECRETARIA")).toBe(false);
+  });
+
+  it("returns false for TECNICO", () => {
+    expect(isSuperusuario("TECNICO")).toBe(false);
+  });
+
+  it("returns false for undefined", () => {
+    expect(isSuperusuario(undefined)).toBe(false);
   });
 });

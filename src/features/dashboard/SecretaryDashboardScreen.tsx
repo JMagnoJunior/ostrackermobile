@@ -9,6 +9,7 @@ import {
 } from "react-native";
 
 import { ContactLogModal } from "../contactLogs/ContactLogModal";
+import { DeliveryApprovalModal } from "../deliveryApproval/DeliveryApprovalModal";
 import { EditScheduleModal } from "../scheduling/EditScheduleModal";
 import { ScheduledShift } from "../scheduling/types";
 
@@ -71,6 +72,13 @@ export function SecretaryDashboardScreen() {
   } | null;
 
   const [contactLogTarget, setContactLogTarget] = useState<ContactLogTarget>(null);
+
+  type DeliveryApprovalTarget = {
+    orderId: string;
+    orderLabel: string;
+  } | null;
+
+  const [deliveryApprovalTarget, setDeliveryApprovalTarget] = useState<DeliveryApprovalTarget>(null);
 
   const selectedFilterRef = useRef<DashboardFilter>(selectedFilter);
   const listStateRef = useRef<AsyncState<DashboardOrderPage>>(listState);
@@ -326,16 +334,34 @@ export function SecretaryDashboardScreen() {
     setContactLogTarget(null);
   }, []);
 
+  const handleApproveDelivery = useCallback(
+    (item: DashboardOrderItem) => {
+      const orderLabel = `${item.clientName} — ${item.status}`;
+      setDeliveryApprovalTarget({ orderId: item.id, orderLabel });
+    },
+    [],
+  );
+
+  const handleDeliveryApprovalSuccess = useCallback(() => {
+    setDeliveryApprovalTarget(null);
+    void refreshCurrentData();
+  }, [refreshCurrentData]);
+
+  const handleDeliveryApprovalClose = useCallback(() => {
+    setDeliveryApprovalTarget(null);
+  }, []);
+
   const renderItem: ListRenderItem<DashboardOrderItem> = useCallback(
     ({ item }) => (
       <OrderListItem
         item={item}
         onAddContactLog={() => handleAddContactLog(item)}
+        onApproveDelivery={() => handleApproveDelivery(item)}
         onEditSchedule={() => handleEditSchedule(item)}
         selectedFilter={selectedFilter}
       />
     ),
-    [selectedFilter, handleEditSchedule, handleAddContactLog],
+    [selectedFilter, handleEditSchedule, handleAddContactLog, handleApproveDelivery],
   );
 
   const listEmptyComponent = useMemo(() => {
@@ -431,6 +457,15 @@ export function SecretaryDashboardScreen() {
           orderId={contactLogTarget.orderId}
           orderLabel={contactLogTarget.orderLabel}
           visible={contactLogTarget !== null}
+        />
+      ) : null}
+      {deliveryApprovalTarget ? (
+        <DeliveryApprovalModal
+          onClose={handleDeliveryApprovalClose}
+          onSuccess={handleDeliveryApprovalSuccess}
+          orderId={deliveryApprovalTarget.orderId}
+          orderLabel={deliveryApprovalTarget.orderLabel}
+          visible={deliveryApprovalTarget !== null}
         />
       ) : null}
     </>

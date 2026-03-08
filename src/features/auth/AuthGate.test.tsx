@@ -42,6 +42,14 @@ jest.mock("../dashboard/SecretaryDashboardScreen", () => ({
   },
 }));
 
+jest.mock("../superusuario/SuperusuarioHomeScreen", () => ({
+  SuperusuarioHomeScreen: () => {
+    const ReactLib = require("react");
+    const { Text } = require("react-native");
+    return ReactLib.createElement(Text, null, "SUPERUSUARIO_HOME_SCREEN");
+  },
+}));
+
 const mockedGetStoredSession = getStoredSession as jest.MockedFunction<
   typeof getStoredSession
 >;
@@ -101,6 +109,36 @@ describe("AuthGate", () => {
 
     await waitFor(() => {
       expect(screen.getByText("SECRETARY_DASHBOARD_SCREEN")).toBeTruthy();
+    });
+  });
+
+  it("shows superusuario home screen when session role is superusuario", async () => {
+    mockedGetStoredSession.mockResolvedValueOnce({
+      token: "jwt",
+      status: "ATIVO",
+      pending: false,
+      role: "SUPERUSUARIO",
+    });
+
+    const screen = render(<AuthGate />);
+
+    await waitFor(() => {
+      expect(screen.getByText("SUPERUSUARIO_HOME_SCREEN")).toBeTruthy();
+    });
+  });
+
+  it("shows finalization screen when session role is tecnico", async () => {
+    mockedGetStoredSession.mockResolvedValueOnce({
+      token: "jwt",
+      status: "ATIVO",
+      pending: false,
+      role: "TECNICO",
+    });
+
+    const screen = render(<AuthGate />);
+
+    await waitFor(() => {
+      expect(screen.getByText("FINALIZATION_SCREEN")).toBeTruthy();
     });
   });
 });

@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { SecretaryDashboardScreen } from "../dashboard/SecretaryDashboardScreen";
 import { FinalizationScreen } from "../finalization/FinalizationScreen";
+import { SuperusuarioHomeScreen } from "../superusuario/SuperusuarioHomeScreen";
 import { configureHttpAuth } from "../../shared/api/http";
 import {
   clearStoredSession,
@@ -16,6 +17,7 @@ import {
   AuthSession,
   getAuthStateFromSession,
   isSecretaryLikeRole,
+  isSuperusuario,
 } from "./session";
 
 const INVALID_SESSION_MESSAGE =
@@ -105,6 +107,10 @@ export function AuthGate() {
 
   if (authState.kind === "pending") {
     return <PendingApprovalScreen onSwitchAccount={onSwitchAccount} />;
+  }
+
+  if (isSuperusuario(authState.session.role)) {
+    return <SuperusuarioHomeScreen onSwitchAccount={onSwitchAccount} />;
   }
 
   if (isSecretaryLikeRole(authState.session.role)) {

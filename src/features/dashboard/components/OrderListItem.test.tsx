@@ -97,4 +97,73 @@ describe("OrderListItem", () => {
     expect(screen.getByTestId("btn-edit-schedule")).toBeTruthy();
     expect(screen.getByTestId("btn-add-contact-log")).toBeTruthy();
   });
+
+  it("does not render approve delivery button when status is not AGENDADA_DELIVERY even with prop", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "FINALIZADA" }}
+        onApproveDelivery={jest.fn()}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    expect(screen.queryByTestId("btn-approve-delivery")).toBeNull();
+  });
+
+  it("does not render approve delivery button when status is AGENDADA_DELIVERY but prop is not provided", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "AGENDADA_DELIVERY" }}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    expect(screen.queryByTestId("btn-approve-delivery")).toBeNull();
+  });
+
+  it("renders approve delivery button when status is AGENDADA_DELIVERY and prop is provided", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "AGENDADA_DELIVERY" }}
+        onApproveDelivery={jest.fn()}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    expect(screen.getByTestId("btn-approve-delivery")).toBeTruthy();
+  });
+
+  it("calls onApproveDelivery when approve delivery button is pressed", () => {
+    const onApproveDelivery = jest.fn();
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "AGENDADA_DELIVERY" }}
+        onApproveDelivery={onApproveDelivery}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("btn-approve-delivery"));
+
+    expect(onApproveDelivery).toHaveBeenCalledTimes(1);
+  });
+
+  it("existing onEditSchedule and onAddContactLog tests pass with new optional prop", () => {
+    const onEditSchedule = jest.fn();
+    const onAddContactLog = jest.fn();
+    const screen = render(
+      <OrderListItem
+        item={baseItem}
+        onAddContactLog={onAddContactLog}
+        onEditSchedule={onEditSchedule}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("btn-edit-schedule"));
+    fireEvent.press(screen.getByTestId("btn-add-contact-log"));
+
+    expect(onEditSchedule).toHaveBeenCalledTimes(1);
+    expect(onAddContactLog).toHaveBeenCalledTimes(1);
+  });
 });

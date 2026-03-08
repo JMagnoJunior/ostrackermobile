@@ -8,6 +8,7 @@ type OrderListItemProps = {
   selectedFilter: DashboardFilter;
   onEditSchedule?: () => void;
   onAddContactLog?: () => void;
+  onApproveDelivery?: () => void;
 };
 
 function formatFinishedAt(value: string): string {
@@ -49,7 +50,7 @@ function getDetailsLine(item: DashboardOrderItem, selectedFilter: DashboardFilte
   return `Finalizada em ${formatFinishedAt(item.finishedAt)}`;
 }
 
-export function OrderListItem({ item, selectedFilter, onEditSchedule, onAddContactLog }: OrderListItemProps) {
+export function OrderListItem({ item, selectedFilter, onEditSchedule, onAddContactLog, onApproveDelivery }: OrderListItemProps) {
   const detailsLine = getDetailsLine(item, selectedFilter);
 
   return (
@@ -79,6 +80,16 @@ export function OrderListItem({ item, selectedFilter, onEditSchedule, onAddConta
           testID="btn-add-contact-log"
         >
           <Text style={styles.contactLogButtonText}>Registrar Contato</Text>
+        </Pressable>
+      ) : null}
+
+      {item.status === "AGENDADA_DELIVERY" && onApproveDelivery ? (
+        <Pressable
+          onPress={onApproveDelivery}
+          style={styles.approveButton}
+          testID="btn-approve-delivery"
+        >
+          <Text style={styles.approveButtonText}>Aprovar Delivery</Text>
         </Pressable>
       ) : null}
     </View>
@@ -140,6 +151,19 @@ const styles = StyleSheet.create({
   },
   contactLogButtonText: {
     color: "#334155",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  approveButton: {
+    alignSelf: "flex-end",
+    backgroundColor: "#15803d",
+    borderRadius: 8,
+    marginTop: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  approveButtonText: {
+    color: "#ffffff",
     fontSize: 13,
     fontWeight: "600",
   },

@@ -101,6 +101,10 @@ export function isSecretaryLikeRole(role: string | undefined): boolean {
   return role === "SECRETARIA" || role === "SUPERUSUARIO";
 }
 
+export function isSuperusuario(role: string | undefined): boolean {
+  return role === "SUPERUSUARIO";
+}
+
 export function normalizeAuthSession(payload: AuthSessionResponse): AuthSession {
   const normalizedStatus = payload.status.trim();
   const isPendingStatus = normalizedStatus.toUpperCase() === "PENDENTE_APROVACAO";
