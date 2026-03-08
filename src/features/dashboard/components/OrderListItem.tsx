@@ -7,6 +7,7 @@ type OrderListItemProps = {
   item: DashboardOrderItem;
   selectedFilter: DashboardFilter;
   onEditSchedule?: () => void;
+  onAddContactLog?: () => void;
 };
 
 function formatFinishedAt(value: string): string {
@@ -48,7 +49,7 @@ function getDetailsLine(item: DashboardOrderItem, selectedFilter: DashboardFilte
   return `Finalizada em ${formatFinishedAt(item.finishedAt)}`;
 }
 
-export function OrderListItem({ item, selectedFilter, onEditSchedule }: OrderListItemProps) {
+export function OrderListItem({ item, selectedFilter, onEditSchedule, onAddContactLog }: OrderListItemProps) {
   const detailsLine = getDetailsLine(item, selectedFilter);
 
   return (
@@ -68,6 +69,16 @@ export function OrderListItem({ item, selectedFilter, onEditSchedule }: OrderLis
           testID="btn-edit-schedule"
         >
           <Text style={styles.editButtonText}>Editar Agendamento</Text>
+        </Pressable>
+      ) : null}
+
+      {onAddContactLog ? (
+        <Pressable
+          onPress={onAddContactLog}
+          style={styles.contactLogButton}
+          testID="btn-add-contact-log"
+        >
+          <Text style={styles.contactLogButtonText}>Registrar Contato</Text>
         </Pressable>
       ) : null}
     </View>
@@ -115,6 +126,20 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     color: "#0f766e",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  contactLogButton: {
+    alignSelf: "flex-end",
+    borderColor: "#64748b",
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  contactLogButtonText: {
+    color: "#334155",
     fontSize: 13,
     fontWeight: "600",
   },

@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 
+import { ContactLogModal } from "../contactLogs/ContactLogModal";
 import { EditScheduleModal } from "../scheduling/EditScheduleModal";
 import { ScheduledShift } from "../scheduling/types";
 
