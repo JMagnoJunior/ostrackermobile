@@ -9,6 +9,7 @@ type OrderListItemProps = {
   onEditSchedule?: () => void;
   onAddContactLog?: () => void;
   onApproveDelivery?: () => void;
+  onCheckin?: () => void;
 };
 
 function formatFinishedAt(value: string): string {
@@ -50,7 +51,7 @@ function getDetailsLine(item: DashboardOrderItem, selectedFilter: DashboardFilte
   return `Finalizada em ${formatFinishedAt(item.finishedAt)}`;
 }
 
-export function OrderListItem({ item, selectedFilter, onEditSchedule, onAddContactLog, onApproveDelivery }: OrderListItemProps) {
+export function OrderListItem({ item, selectedFilter, onEditSchedule, onAddContactLog, onApproveDelivery, onCheckin }: OrderListItemProps) {
   const detailsLine = getDetailsLine(item, selectedFilter);
 
   return (
@@ -90,6 +91,16 @@ export function OrderListItem({ item, selectedFilter, onEditSchedule, onAddConta
           testID="btn-approve-delivery"
         >
           <Text style={styles.approveButtonText}>Aprovar Delivery</Text>
+        </Pressable>
+      ) : null}
+
+      {(item.status === "AGENDADA_PRESENCIAL" || item.status === "AGENDADA_DELIVERY") && onCheckin ? (
+        <Pressable
+          onPress={onCheckin}
+          style={styles.checkinButton}
+          testID="btn-checkin"
+        >
+          <Text style={styles.checkinButtonText}>Confirmar Entrega</Text>
         </Pressable>
       ) : null}
     </View>
@@ -163,6 +174,19 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   approveButtonText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  checkinButton: {
+    alignSelf: "flex-end",
+    backgroundColor: "#1d4ed8",
+    borderRadius: 8,
+    marginTop: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  checkinButtonText: {
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "600",

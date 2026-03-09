@@ -1,12 +1,14 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import React from "react";
 
+import * as checkinApi from "../checkin/api";
 import { SecretaryDashboardScreen } from "./SecretaryDashboardScreen";
 import { DashboardFilter, DashboardOrderPage } from "./types";
 
 const mockGetDashboardSummary = jest.fn();
 const mockGetDashboardOrders = jest.fn();
 const mockGetDashboardErrorMessage = jest.fn();
+const mockConfirmCheckin = jest.spyOn(checkinApi, "confirmCheckin");
 
 jest.mock("./api", () => ({
   getDashboardSummary: (...args: unknown[]) => mockGetDashboardSummary(...args),
@@ -14,13 +16,13 @@ jest.mock("./api", () => ({
   getDashboardErrorMessage: (...args: unknown[]) => mockGetDashboardErrorMessage(...args),
 }));
 
-function buildPage(filter: DashboardFilter, contentSize: number): DashboardOrderPage {
+function buildPage(filter: DashboardFilter, contentSize: number, status = "FINALIZADA"): DashboardOrderPage {
   return {
     content: Array.from({ length: contentSize }).map((_, index) => ({
       id: `${filter}-order-${index}`,
       clientName: `Cliente ${index}`,
       clientPhone: "5511999990000",
-      status: "FINALIZADA",
+      status,
       finishedAt: "2026-03-05T10:00:00Z",
       monitoringFilter: filter,
     })),
@@ -35,6 +37,11 @@ function buildPage(filter: DashboardFilter, contentSize: number): DashboardOrder
 describe("SecretaryDashboardScreen", () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockConfirmCheckin.mockResolvedValue({
+      id: "order-123",
+      status: "ENTREGUE",
+      deliveredAt: "2026-03-09T10:00:00Z",
+    });
 
     mockGetDashboardSummary.mockResolvedValue({
       generatedAt: "2026-03-08T12:00:00Z",
@@ -72,6 +79,50 @@ describe("SecretaryDashboardScreen", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Cliente 0")).toBeTruthy();
+    });
+  });
+
+  it("opens CheckinModal when btn-checkin is tapped on AGENDADA_PRESENCIAL item", async () => {
+    mockGetDashboardOrders.mockResolvedValueOnce(
+      buildPage("ATRASADOS", 1, "AGENDADA_PRESENCIAL"),
+    );
+
+    const screen = render(<SecretaryDashboardScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("btn-checkin")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("btn-checkin"));
+
+    await waitFor(() => {
+      // Modal opens: modal has btn-confirm testID
+      expect(screen.getByTestId("btn-confirm")).toBeTruthy();
+    });
+  });
+
+  it("calls refreshCurrentData after successful checkin", async () => {
+    mockGetDashboardOrders
+      .mockResolvedValueOnce(buildPage("ATRASADOS", 1, "AGENDADA_PRESENCIAL"))
+      .mockResolvedValue(buildPage("ATRASADOS", 0));
+
+    const screen = render(<SecretaryDashboardScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("btn-checkin")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("btn-checkin"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("btn-confirm")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("btn-confirm"));
+
+    await waitFor(() => {
+      expect(mockConfirmCheckin).toHaveBeenCalledTimes(1);
+      expect(mockGetDashboardOrders).toHaveBeenCalledTimes(2);
     });
   });
 

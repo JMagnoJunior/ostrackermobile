@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 
+import { CheckinModal } from "../checkin/CheckinModal";
 import { ContactLogModal } from "../contactLogs/ContactLogModal";
 import { DeliveryApprovalModal } from "../deliveryApproval/DeliveryApprovalModal";
 import { EditScheduleModal } from "../scheduling/EditScheduleModal";
@@ -79,6 +80,13 @@ export function SecretaryDashboardScreen() {
   } | null;
 
   const [deliveryApprovalTarget, setDeliveryApprovalTarget] = useState<DeliveryApprovalTarget>(null);
+
+  type CheckinTarget = {
+    orderId: string;
+    orderLabel: string;
+  } | null;
+
+  const [checkinTarget, setCheckinTarget] = useState<CheckinTarget>(null);
 
   const selectedFilterRef = useRef<DashboardFilter>(selectedFilter);
   const listStateRef = useRef<AsyncState<DashboardOrderPage>>(listState);
@@ -351,17 +359,35 @@ export function SecretaryDashboardScreen() {
     setDeliveryApprovalTarget(null);
   }, []);
 
+  const handleCheckin = useCallback(
+    (item: DashboardOrderItem) => {
+      const orderLabel = `${item.clientName} — ${item.status}`;
+      setCheckinTarget({ orderId: item.id, orderLabel });
+    },
+    [],
+  );
+
+  const handleCheckinSuccess = useCallback(() => {
+    setCheckinTarget(null);
+    void refreshCurrentData();
+  }, [refreshCurrentData]);
+
+  const handleCheckinClose = useCallback(() => {
+    setCheckinTarget(null);
+  }, []);
+
   const renderItem: ListRenderItem<DashboardOrderItem> = useCallback(
     ({ item }) => (
       <OrderListItem
         item={item}
         onAddContactLog={() => handleAddContactLog(item)}
         onApproveDelivery={() => handleApproveDelivery(item)}
+        onCheckin={() => handleCheckin(item)}
         onEditSchedule={() => handleEditSchedule(item)}
         selectedFilter={selectedFilter}
       />
     ),
-    [selectedFilter, handleEditSchedule, handleAddContactLog, handleApproveDelivery],
+    [selectedFilter, handleEditSchedule, handleAddContactLog, handleApproveDelivery, handleCheckin],
   );
 
   const listEmptyComponent = useMemo(() => {
@@ -466,6 +492,15 @@ export function SecretaryDashboardScreen() {
           orderId={deliveryApprovalTarget.orderId}
           orderLabel={deliveryApprovalTarget.orderLabel}
           visible={deliveryApprovalTarget !== null}
+        />
+      ) : null}
+      {checkinTarget ? (
+        <CheckinModal
+          onClose={handleCheckinClose}
+          onSuccess={handleCheckinSuccess}
+          orderId={checkinTarget.orderId}
+          orderLabel={checkinTarget.orderLabel}
+          visible={checkinTarget !== null}
         />
       ) : null}
     </>

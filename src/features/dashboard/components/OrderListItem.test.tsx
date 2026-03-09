@@ -148,6 +148,82 @@ describe("OrderListItem", () => {
     expect(onApproveDelivery).toHaveBeenCalledTimes(1);
   });
 
+  it("renders checkin button when status is AGENDADA_PRESENCIAL and onCheckin is provided", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "AGENDADA_PRESENCIAL" }}
+        onCheckin={jest.fn()}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    expect(screen.getByTestId("btn-checkin")).toBeTruthy();
+  });
+
+  it("renders checkin button when status is AGENDADA_DELIVERY and onCheckin is provided", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "AGENDADA_DELIVERY" }}
+        onCheckin={jest.fn()}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    expect(screen.getByTestId("btn-checkin")).toBeTruthy();
+  });
+
+  it("calls onCheckin when checkin button is pressed", () => {
+    const onCheckin = jest.fn();
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "AGENDADA_PRESENCIAL" }}
+        onCheckin={onCheckin}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("btn-checkin"));
+
+    expect(onCheckin).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not render checkin button when status is not AGENDADA_PRESENCIAL or AGENDADA_DELIVERY even with prop", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "FINALIZADA" }}
+        onCheckin={jest.fn()}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    expect(screen.queryByTestId("btn-checkin")).toBeNull();
+  });
+
+  it("does not render checkin button when status is AGENDADA_PRESENCIAL but onCheckin is not provided", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "AGENDADA_PRESENCIAL" }}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    expect(screen.queryByTestId("btn-checkin")).toBeNull();
+  });
+
+  it("renders both btn-checkin and btn-approve-delivery for AGENDADA_DELIVERY with both props", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, status: "AGENDADA_DELIVERY" }}
+        onApproveDelivery={jest.fn()}
+        onCheckin={jest.fn()}
+        selectedFilter="ATRASADOS"
+      />,
+    );
+
+    expect(screen.getByTestId("btn-checkin")).toBeTruthy();
+    expect(screen.getByTestId("btn-approve-delivery")).toBeTruthy();
+  });
+
   it("existing onEditSchedule and onAddContactLog tests pass with new optional prop", () => {
     const onEditSchedule = jest.fn();
     const onAddContactLog = jest.fn();
