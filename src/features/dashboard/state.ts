@@ -9,12 +9,18 @@ const FILTER_LABELS: Record<DashboardFilter, string> = {
   ATRASADOS: "Atrasados",
   SEM_AGENDAMENTO: "Sem agendamento",
   PROXIMOS_DESCARTES: "Proximos descartes",
+  AGUARDANDO_CONFERENCIA: "Aguard. conferência",
+  AGENDADAS: "Agendadas",
+  NO_SHOW: "No-show",
 };
 
 const EMPTY_MESSAGES: Record<DashboardFilter, string> = {
   ATRASADOS: "Nenhuma OS atrasada no momento.",
   SEM_AGENDAMENTO: "Nenhuma OS sem agendamento no momento.",
   PROXIMOS_DESCARTES: "Nenhuma OS proxima do descarte no momento.",
+  AGUARDANDO_CONFERENCIA: "Nenhuma OS aguardando conferência no momento.",
+  AGENDADAS: "Nenhuma OS agendada no momento.",
+  NO_SHOW: "Nenhum no-show identificado no momento.",
 };
 
 export function getFilterLabel(filter: DashboardFilter): string {

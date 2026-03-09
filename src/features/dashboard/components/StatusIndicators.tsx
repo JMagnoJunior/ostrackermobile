@@ -15,6 +15,9 @@ const FILTER_ORDER: DashboardFilter[] = [
   "ATRASADOS",
   "SEM_AGENDAMENTO",
   "PROXIMOS_DESCARTES",
+  "AGUARDANDO_CONFERENCIA",
+  "AGENDADAS",
+  "NO_SHOW",
 ];
 
 function getCounter(summary: DashboardSummary | undefined, filter: DashboardFilter): number {
@@ -22,15 +25,16 @@ function getCounter(summary: DashboardSummary | undefined, filter: DashboardFilt
     return 0;
   }
 
-  if (filter === "ATRASADOS") {
-    return summary.atrasados;
-  }
+  const map: Record<DashboardFilter, number> = {
+    ATRASADOS: summary.atrasados,
+    SEM_AGENDAMENTO: summary.semAgendamento,
+    PROXIMOS_DESCARTES: summary.proximosDescartes,
+    AGUARDANDO_CONFERENCIA: summary.aguardandoConferencia,
+    AGENDADAS: summary.agendadas,
+    NO_SHOW: summary.noShow,
+  };
 
-  if (filter === "SEM_AGENDAMENTO") {
-    return summary.semAgendamento;
-  }
-
-  return summary.proximosDescartes;
+  return map[filter];
 }
 
 export function StatusIndicators({
@@ -72,6 +76,7 @@ export function StatusIndicators({
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     marginBottom: 12,
   },
@@ -80,9 +85,10 @@ const styles = StyleSheet.create({
     borderColor: "#cbd5e1",
     borderRadius: 10,
     borderWidth: 1,
-    flex: 1,
     minHeight: 84,
+    minWidth: "30%",
     padding: 10,
+    width: "31%",
   },
   cardSelected: {
     backgroundColor: "#e0f2fe",

@@ -13,6 +13,9 @@ const FILTER_ORDER: DashboardFilter[] = [
   "ATRASADOS",
   "SEM_AGENDAMENTO",
   "PROXIMOS_DESCARTES",
+  "AGUARDANDO_CONFERENCIA",
+  "AGENDADAS",
+  "NO_SHOW",
 ];
 
 export function FilterChips({ selectedFilter, onSelectFilter }: FilterChipsProps) {

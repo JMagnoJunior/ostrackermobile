@@ -31,6 +31,14 @@ function formatFinishedAt(value: string): string {
   });
 }
 
+function formatScheduledInfo(date?: string, shift?: string): string {
+  if (!date && !shift) return "";
+  const parts: string[] = [];
+  if (date) parts.push(date);
+  if (shift) parts.push(shift);
+  return parts.join(" — ");
+}
+
 function getDetailsLine(item: DashboardOrderItem, selectedFilter: DashboardFilter): string {
   if (selectedFilter === "ATRASADOS") {
     if (typeof item.inactiveHours === "number") {
@@ -46,6 +54,24 @@ function getDetailsLine(item: DashboardOrderItem, selectedFilter: DashboardFilte
     }
 
     return "Sem previsao de descarte";
+  }
+
+  if (selectedFilter === "AGUARDANDO_CONFERENCIA") {
+    return item.finishedAt
+      ? `Finalizada em ${formatFinishedAt(item.finishedAt)}`
+      : "Data de finalizacao indisponivel";
+  }
+
+  if (selectedFilter === "AGENDADAS") {
+    const info = formatScheduledInfo(item.scheduledDate, item.scheduledShift);
+    return info ? `Agendada: ${info}` : "Sem data de agendamento";
+  }
+
+  if (selectedFilter === "NO_SHOW") {
+    const info = formatScheduledInfo(item.scheduledDate, item.scheduledShift);
+    return info
+      ? `No-show: turno ${item.scheduledShift ?? ""} em ${item.scheduledDate ?? ""}`.trim()
+      : "Turno expirado";
   }
 
   return `Finalizada em ${formatFinishedAt(item.finishedAt)}`;

@@ -51,7 +51,7 @@ describe("dashboard api", () => {
 
     const result = await getDashboardSummary();
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       generatedAt: "2026-03-08T12:00:00Z",
       atrasados: 5,
       semAgendamento: 7,
@@ -59,6 +59,110 @@ describe("dashboard api", () => {
       statusVolumes: [],
     });
     expect(mockHttpGet).toHaveBeenCalledWith("/admin/orders/monitoring/summary");
+  });
+
+  it("mapSummaryResponse mapeia aguardandoConferencia, agendadas e noShow do payload nested", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: {
+        generatedAt: "2026-03-09T12:00:00Z",
+        counters: {
+          atrasados: 0,
+          semAgendamento: 0,
+          proximosDescartes: 0,
+          aguardandoConferencia: 3,
+          agendadas: 5,
+          noShow: 1,
+        },
+      },
+    });
+
+    const result = await getDashboardSummary();
+
+    expect(result.aguardandoConferencia).toBe(3);
+    expect(result.agendadas).toBe(5);
+    expect(result.noShow).toBe(1);
+  });
+
+  it("mapSummaryResponse retorna 0 para novos contadores quando ausentes", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: {
+        generatedAt: "2026-03-09T12:00:00Z",
+        counters: {
+          atrasados: 1,
+          semAgendamento: 0,
+          proximosDescartes: 0,
+        },
+      },
+    });
+
+    const result = await getDashboardSummary();
+
+    expect(result.aguardandoConferencia).toBe(0);
+    expect(result.agendadas).toBe(0);
+    expect(result.noShow).toBe(0);
+  });
+
+  it("getDashboardOrders aceita filtro AGUARDANDO_CONFERENCIA", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, hasNext: false },
+    });
+
+    await getDashboardOrders("AGUARDANDO_CONFERENCIA", 0, 20);
+
+    expect(mockHttpGet).toHaveBeenCalledWith("/admin/orders/monitoring", {
+      params: { filter: "AGUARDANDO_CONFERENCIA", page: 0, size: 20 },
+    });
+  });
+
+  it("getDashboardOrders aceita filtro AGENDADAS", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, hasNext: false },
+    });
+
+    await getDashboardOrders("AGENDADAS", 0, 20);
+
+    expect(mockHttpGet).toHaveBeenCalledWith("/admin/orders/monitoring", {
+      params: { filter: "AGENDADAS", page: 0, size: 20 },
+    });
+  });
+
+  it("getDashboardOrders aceita filtro NO_SHOW", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, hasNext: false },
+    });
+
+    await getDashboardOrders("NO_SHOW", 0, 20);
+
+    expect(mockHttpGet).toHaveBeenCalledWith("/admin/orders/monitoring", {
+      params: { filter: "NO_SHOW", page: 0, size: 20 },
+    });
+  });
+
+  it("normalizeFilter retorna undefined para valor desconhecido", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            id: "order-unknown-filter",
+            clientName: "Cliente",
+            clientPhone: "5511999990000",
+            status: "FINALIZADA",
+            finishedAt: "2026-03-01T10:00:00Z",
+            monitoringFilter: "OUTRO",
+          },
+        ],
+        page: 0,
+        size: 20,
+        totalElements: 1,
+        totalPages: 1,
+        hasNext: false,
+      },
+    });
+
+    const result = await getDashboardOrders("ATRASADOS");
+
+    // When monitoringFilter is unknown, fallback to the request filter
+    expect(result.content[0].monitoringFilter).toBe("ATRASADOS");
   });
 
   it("mapSummaryResponse mapeia statusVolumes corretamente", async () => {

@@ -2,6 +2,9 @@ export const DASHBOARD_FILTERS = [
   "ATRASADOS",
   "SEM_AGENDAMENTO",
   "PROXIMOS_DESCARTES",
+  "AGUARDANDO_CONFERENCIA",
+  "AGENDADAS",
+  "NO_SHOW",
 ] as const;
 
 export type DashboardFilter = (typeof DASHBOARD_FILTERS)[number];
@@ -15,6 +18,9 @@ export type DashboardSummary = {
   atrasados: number;
   semAgendamento: number;
   proximosDescartes: number;
+  aguardandoConferencia: number;
+  agendadas: number;
+  noShow: number;
   generatedAt: string;
   statusVolumes: MonitoringStatusVolume[];
 };

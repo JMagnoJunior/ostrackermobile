@@ -16,10 +16,16 @@ type DashboardSummaryResponseV1 = {
     atrasados?: unknown;
     semAgendamento?: unknown;
     proximosDescartes?: unknown;
+    aguardandoConferencia?: unknown;
+    agendadas?: unknown;
+    noShow?: unknown;
   };
   atrasados?: unknown;
   semAgendamento?: unknown;
   proximosDescartes?: unknown;
+  aguardandoConferencia?: unknown;
+  agendadas?: unknown;
+  noShow?: unknown;
   statusVolumes?: unknown;
 };
 
@@ -134,6 +140,9 @@ function mapSummaryResponse(payload: unknown): DashboardSummary {
     atrasados: toNumber(counters?.atrasados ?? data.atrasados),
     semAgendamento: toNumber(counters?.semAgendamento ?? data.semAgendamento),
     proximosDescartes: toNumber(counters?.proximosDescartes ?? data.proximosDescartes),
+    aguardandoConferencia: toNumber(counters?.aguardandoConferencia ?? data.aguardandoConferencia),
+    agendadas: toNumber(counters?.agendadas ?? data.agendadas),
+    noShow: toNumber(counters?.noShow ?? data.noShow),
     generatedAt:
       typeof data.generatedAt === "string"
         ? data.generatedAt
@@ -235,6 +244,9 @@ async function getCallQueueFallbackSummary(): Promise<DashboardSummary> {
     atrasados: totalElements,
     semAgendamento: 0,
     proximosDescartes: 0,
+    aguardandoConferencia: 0,
+    agendadas: 0,
+    noShow: 0,
     generatedAt: new Date().toISOString(),
     statusVolumes: [],
   };

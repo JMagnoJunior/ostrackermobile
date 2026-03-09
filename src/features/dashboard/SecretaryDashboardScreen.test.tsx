@@ -48,6 +48,9 @@ describe("SecretaryDashboardScreen", () => {
       atrasados: 3,
       semAgendamento: 1,
       proximosDescartes: 0,
+      aguardandoConferencia: 0,
+      agendadas: 0,
+      noShow: 0,
       statusVolumes: [],
     });
     mockGetDashboardErrorMessage.mockReturnValue("Falha ao carregar");
@@ -157,6 +160,9 @@ describe("SecretaryDashboardScreen", () => {
         atrasados: 3,
         semAgendamento: 1,
         proximosDescartes: 0,
+        aguardandoConferencia: 0,
+        agendadas: 0,
+        noShow: 0,
         statusVolumes: [],
       })
       .mockResolvedValueOnce({
@@ -164,6 +170,9 @@ describe("SecretaryDashboardScreen", () => {
         atrasados: 4,
         semAgendamento: 2,
         proximosDescartes: 0,
+        aguardandoConferencia: 0,
+        agendadas: 0,
+        noShow: 0,
         statusVolumes: [{ status: "FINALIZADA", count: 3 }],
       });
 

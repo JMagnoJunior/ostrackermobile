@@ -224,6 +224,72 @@ describe("OrderListItem", () => {
     expect(screen.getByTestId("btn-approve-delivery")).toBeTruthy();
   });
 
+  it("AGUARDANDO_CONFERENCIA com finishedAt preenchido exibe Finalizada em", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, finishedAt: "2026-03-01T10:00:00Z" }}
+        selectedFilter="AGUARDANDO_CONFERENCIA"
+      />,
+    );
+
+    expect(screen.getByText(/Finalizada em/)).toBeTruthy();
+  });
+
+  it("AGUARDANDO_CONFERENCIA com finishedAt vazio exibe Data de finalizacao indisponivel", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, finishedAt: "" }}
+        selectedFilter="AGUARDANDO_CONFERENCIA"
+      />,
+    );
+
+    expect(screen.getByText("Data de finalizacao indisponivel")).toBeTruthy();
+  });
+
+  it("AGENDADAS com scheduledDate e scheduledShift exibe Agendada", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, scheduledDate: "2026-03-20", scheduledShift: "TARDE" }}
+        selectedFilter="AGENDADAS"
+      />,
+    );
+
+    expect(screen.getByText("Agendada: 2026-03-20 — TARDE")).toBeTruthy();
+  });
+
+  it("AGENDADAS sem scheduledDate e scheduledShift exibe Sem data de agendamento", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, scheduledDate: undefined, scheduledShift: undefined }}
+        selectedFilter="AGENDADAS"
+      />,
+    );
+
+    expect(screen.getByText("Sem data de agendamento")).toBeTruthy();
+  });
+
+  it("NO_SHOW com scheduledDate e scheduledShift exibe No-show", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, scheduledDate: "2026-03-10", scheduledShift: "MANHA" }}
+        selectedFilter="NO_SHOW"
+      />,
+    );
+
+    expect(screen.getByText("No-show: turno MANHA em 2026-03-10")).toBeTruthy();
+  });
+
+  it("NO_SHOW sem scheduledDate ou scheduledShift exibe Turno expirado", () => {
+    const screen = render(
+      <OrderListItem
+        item={{ ...baseItem, scheduledDate: undefined, scheduledShift: undefined }}
+        selectedFilter="NO_SHOW"
+      />,
+    );
+
+    expect(screen.getByText("Turno expirado")).toBeTruthy();
+  });
+
   it("existing onEditSchedule and onAddContactLog tests pass with new optional prop", () => {
     const onEditSchedule = jest.fn();
     const onAddContactLog = jest.fn();
