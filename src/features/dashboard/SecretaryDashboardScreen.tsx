@@ -22,7 +22,9 @@ import {
 import { FilterChips } from "./components/FilterChips";
 import { ListStateView } from "./components/ListStateView";
 import { OrderListItem } from "./components/OrderListItem";
+import { StatusFilterChips } from "./components/StatusFilterChips";
 import { StatusIndicators } from "./components/StatusIndicators";
+import { StatusVolumesPanel } from "./components/StatusVolumesPanel";
 import {
   getAsyncStateData,
   getEmptyMessage,
@@ -47,6 +49,7 @@ type LoadMode = {
 
 export function SecretaryDashboardScreen() {
   const [selectedFilter, setSelectedFilter] = useState<DashboardFilter>(DEFAULT_FILTER);
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set());
   const [summaryState, setSummaryState] = useState<AsyncState<DashboardSummary>>({
     kind: "loading",
   });
@@ -89,12 +92,17 @@ export function SecretaryDashboardScreen() {
   const [checkinTarget, setCheckinTarget] = useState<CheckinTarget>(null);
 
   const selectedFilterRef = useRef<DashboardFilter>(selectedFilter);
+  const selectedStatusesRef = useRef<Set<string>>(selectedStatuses);
   const listStateRef = useRef<AsyncState<DashboardOrderPage>>(listState);
   const filterCacheRef = useRef<DashboardFilterCache>(filterCache);
 
   useEffect(() => {
     selectedFilterRef.current = selectedFilter;
   }, [selectedFilter]);
+
+  useEffect(() => {
+    selectedStatusesRef.current = selectedStatuses;
+  }, [selectedStatuses]);
 
   useEffect(() => {
     listStateRef.current = listState;
@@ -155,7 +163,12 @@ export function SecretaryDashboardScreen() {
       });
 
       try {
-        const page = await getDashboardOrders(filter, 0, PAGE_SIZE);
+        const page = await getDashboardOrders(
+          filter,
+          0,
+          PAGE_SIZE,
+          selectedStatusesRef.current.size > 0 ? selectedStatusesRef.current : undefined,
+        );
         updateFilterCache(filter, page);
 
         if (selectedFilterRef.current === filter) {
@@ -198,6 +211,7 @@ export function SecretaryDashboardScreen() {
         selectedFilterRef.current,
         currentPage.page + 1,
         PAGE_SIZE,
+        selectedStatusesRef.current.size > 0 ? selectedStatusesRef.current : undefined,
       );
 
       const mergedPage = mergeDashboardPages(currentPage, nextPage);
@@ -226,6 +240,27 @@ export function SecretaryDashboardScreen() {
     ]);
   }, [loadFirstPage, loadSummary]);
 
+  const onToggleStatus = useCallback((status: string) => {
+    setSelectedStatuses((prev) => {
+      if (status === "") {
+        selectedStatusesRef.current = new Set();
+        return new Set();
+      }
+
+      const next = new Set(prev);
+      if (next.has(status)) {
+        next.delete(status);
+      } else {
+        next.add(status);
+      }
+
+      selectedStatusesRef.current = next;
+      return next;
+    });
+
+    void loadFirstPage(selectedFilterRef.current, { preserveData: true });
+  }, [loadFirstPage]);
+
   const onSelectFilter = useCallback(
     (filter: DashboardFilter) => {
       if (filter === selectedFilterRef.current) {
@@ -234,6 +269,8 @@ export function SecretaryDashboardScreen() {
 
       selectedFilterRef.current = filter;
       setSelectedFilter(filter);
+      setSelectedStatuses(new Set());
+      selectedStatusesRef.current = new Set();
       setIncrementalError(null);
 
       const cached = filterCacheRef.current[filter];
@@ -290,7 +327,17 @@ export function SecretaryDashboardScreen() {
           summary={summaryData}
         />
 
+        <StatusVolumesPanel
+          isLoading={summaryState.kind === "loading" && summaryData === undefined}
+          volumes={summaryData?.statusVolumes ?? []}
+        />
+
         <FilterChips onSelectFilter={onSelectFilter} selectedFilter={selectedFilter} />
+
+        <StatusFilterChips
+          onToggleStatus={onToggleStatus}
+          selectedStatuses={selectedStatuses}
+        />
 
         {showListPartialError ? (
           <Text style={styles.partialErrorBanner}>{listState.message}</Text>
@@ -300,7 +347,9 @@ export function SecretaryDashboardScreen() {
     [
       listState,
       onSelectFilter,
+      onToggleStatus,
       selectedFilter,
+      selectedStatuses,
       showListPartialError,
       showSummaryPartialError,
       summaryData,

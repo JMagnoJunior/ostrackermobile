@@ -56,8 +56,105 @@ describe("dashboard api", () => {
       atrasados: 5,
       semAgendamento: 7,
       proximosDescartes: 2,
+      statusVolumes: [],
     });
     expect(mockHttpGet).toHaveBeenCalledWith("/admin/orders/monitoring/summary");
+  });
+
+  it("mapSummaryResponse mapeia statusVolumes corretamente", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: {
+        generatedAt: "2026-03-08T12:00:00Z",
+        counters: { atrasados: 1, semAgendamento: 0, proximosDescartes: 0 },
+        statusVolumes: [
+          { status: "FINALIZADA", count: 3 },
+          { status: "AGUARDANDO_AGENDAMENTO", count: 1 },
+        ],
+      },
+    });
+
+    const result = await getDashboardSummary();
+
+    expect(result.statusVolumes).toEqual([
+      { status: "FINALIZADA", count: 3 },
+      { status: "AGUARDANDO_AGENDAMENTO", count: 1 },
+    ]);
+  });
+
+  it("mapSummaryResponse retorna statusVolumes vazio quando campo ausente", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: {
+        generatedAt: "2026-03-08T12:00:00Z",
+        counters: { atrasados: 0, semAgendamento: 0, proximosDescartes: 0 },
+      },
+    });
+
+    const result = await getDashboardSummary();
+
+    expect(result.statusVolumes).toEqual([]);
+  });
+
+  it("getDashboardOrders passa status como array quando selectedStatuses nao-vazio", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: {
+        content: [],
+        page: 0,
+        size: 20,
+        totalElements: 0,
+        totalPages: 0,
+        hasNext: false,
+      },
+    });
+
+    await getDashboardOrders("ATRASADOS", 0, 20, new Set(["FINALIZADA", "AGUARDANDO_AGENDAMENTO"]));
+
+    expect(mockHttpGet).toHaveBeenCalledWith("/admin/orders/monitoring", {
+      params: {
+        filter: "ATRASADOS",
+        page: 0,
+        size: 20,
+        status: expect.arrayContaining(["FINALIZADA", "AGUARDANDO_AGENDAMENTO"]),
+      },
+    });
+  });
+
+  it("getDashboardOrders omite status quando Set vazio", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, hasNext: false },
+    });
+
+    await getDashboardOrders("ATRASADOS", 0, 20, new Set());
+
+    const callParams = mockHttpGet.mock.calls[0][1].params;
+    expect(callParams).not.toHaveProperty("status");
+  });
+
+  it("getDashboardOrders passa referenceAt quando fornecido", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, hasNext: false },
+    });
+
+    await getDashboardOrders("ATRASADOS", 0, 20, undefined, "2026-01-01T00:00:00Z");
+
+    expect(mockHttpGet).toHaveBeenCalledWith("/admin/orders/monitoring", {
+      params: {
+        filter: "ATRASADOS",
+        page: 0,
+        size: 20,
+        referenceAt: "2026-01-01T00:00:00Z",
+      },
+    });
+  });
+
+  it("getDashboardOrders omite referenceAt quando undefined", async () => {
+    mockHttpGet.mockResolvedValueOnce({
+      data: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, hasNext: false },
+    });
+
+    await getDashboardOrders("ATRASADOS");
+
+    const callParams = mockHttpGet.mock.calls[0][1].params;
+    expect(callParams).not.toHaveProperty("referenceAt");
   });
 
   it("maps monitoring page payload", async () => {

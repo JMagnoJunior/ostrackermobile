@@ -7,6 +7,7 @@ import {
   DashboardOrderItem,
   DashboardOrderPage,
   DashboardSummary,
+  MonitoringStatusVolume,
 } from "./types";
 
 type DashboardSummaryResponseV1 = {
@@ -19,6 +20,7 @@ type DashboardSummaryResponseV1 = {
   atrasados?: unknown;
   semAgendamento?: unknown;
   proximosDescartes?: unknown;
+  statusVolumes?: unknown;
 };
 
 type DashboardOrderItemRaw = {
@@ -110,6 +112,20 @@ function normalizeFilter(value: unknown): DashboardFilter | undefined {
   return undefined;
 }
 
+function mapStatusVolumes(raw: unknown): MonitoringStatusVolume[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  return raw
+    .filter(isObject)
+    .map((item) => ({
+      status: toStringValue(item["status"], ""),
+      count: toNumber(item["count"]),
+    }))
+    .filter((v) => v.status !== "");
+}
+
 function mapSummaryResponse(payload: unknown): DashboardSummary {
   const data = isObject(payload) ? (payload as DashboardSummaryResponseV1) : {};
   const counters = isObject(data.counters) ? data.counters : undefined;
@@ -122,6 +138,7 @@ function mapSummaryResponse(payload: unknown): DashboardSummary {
       typeof data.generatedAt === "string"
         ? data.generatedAt
         : new Date().toISOString(),
+    statusVolumes: mapStatusVolumes(data.statusVolumes),
   };
 }
 
@@ -186,14 +203,20 @@ async function getOrdersWithEndpoint(
   filter: DashboardFilter,
   page: number,
   size: number,
+  statuses?: Set<string>,
+  referenceAt?: string,
 ): Promise<DashboardOrderPage> {
-  const response = await http.get<MonitoringPageResponse>(endpoint, {
-    params: {
-      filter,
-      page,
-      size,
-    },
-  });
+  const params: Record<string, unknown> = { filter, page, size };
+
+  if (statuses && statuses.size > 0) {
+    params["status"] = Array.from(statuses);
+  }
+
+  if (referenceAt !== undefined) {
+    params["referenceAt"] = referenceAt;
+  }
+
+  const response = await http.get<MonitoringPageResponse>(endpoint, { params });
 
   return mapOrdersResponse(response.data, filter, page, size);
 }
@@ -213,6 +236,7 @@ async function getCallQueueFallbackSummary(): Promise<DashboardSummary> {
     semAgendamento: 0,
     proximosDescartes: 0,
     generatedAt: new Date().toISOString(),
+    statusVolumes: [],
   };
 }
 
@@ -265,12 +289,14 @@ export async function getDashboardOrders(
   filter: DashboardFilter,
   page = 0,
   size = 20,
+  statuses?: Set<string>,
+  referenceAt?: string,
 ): Promise<DashboardOrderPage> {
   let lastError: unknown;
 
   for (const endpoint of MONITORING_LIST_ENDPOINTS) {
     try {
-      return await getOrdersWithEndpoint(endpoint, filter, page, size);
+      return await getOrdersWithEndpoint(endpoint, filter, page, size, statuses, referenceAt);
     } catch (error) {
       if (isHttpNotFound(error)) {
         lastError = error;

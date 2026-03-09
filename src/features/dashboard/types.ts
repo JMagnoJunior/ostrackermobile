@@ -6,11 +6,17 @@ export const DASHBOARD_FILTERS = [
 
 export type DashboardFilter = (typeof DASHBOARD_FILTERS)[number];
 
+export type MonitoringStatusVolume = {
+  status: string;
+  count: number;
+};
+
 export type DashboardSummary = {
   atrasados: number;
   semAgendamento: number;
   proximosDescartes: number;
   generatedAt: string;
+  statusVolumes: MonitoringStatusVolume[];
 };
 
 export type DashboardOrderItem = {

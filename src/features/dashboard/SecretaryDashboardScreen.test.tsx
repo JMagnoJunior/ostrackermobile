@@ -48,6 +48,7 @@ describe("SecretaryDashboardScreen", () => {
       atrasados: 3,
       semAgendamento: 1,
       proximosDescartes: 0,
+      statusVolumes: [],
     });
     mockGetDashboardErrorMessage.mockReturnValue("Falha ao carregar");
   });
@@ -123,6 +124,74 @@ describe("SecretaryDashboardScreen", () => {
     await waitFor(() => {
       expect(mockConfirmCheckin).toHaveBeenCalledTimes(1);
       expect(mockGetDashboardOrders).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("trocar filtro estrategico reseta selectedStatuses e dispara nova requisicao sem status param", async () => {
+    mockGetDashboardOrders
+      .mockResolvedValueOnce(buildPage("ATRASADOS", 1))
+      .mockResolvedValueOnce(buildPage("SEM_AGENDAMENTO", 1));
+
+    const screen = render(<SecretaryDashboardScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Cliente 0")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("filter-chip-SEM_AGENDAMENTO"));
+
+    await waitFor(() => {
+      expect(mockGetDashboardOrders).toHaveBeenCalledTimes(2);
+    });
+
+    const lastCall = mockGetDashboardOrders.mock.calls[1];
+    // statuses parameter should be undefined (no status filter)
+    expect(lastCall[3]).toBeUndefined();
+  });
+
+  it("pull-to-refresh atualiza summary com statusVolumes e exibe StatusVolumesPanel", async () => {
+    mockGetDashboardOrders.mockResolvedValue(buildPage("ATRASADOS", 1));
+    mockGetDashboardSummary
+      .mockResolvedValueOnce({
+        generatedAt: "2026-03-08T12:00:00Z",
+        atrasados: 3,
+        semAgendamento: 1,
+        proximosDescartes: 0,
+        statusVolumes: [],
+      })
+      .mockResolvedValueOnce({
+        generatedAt: "2026-03-08T12:05:00Z",
+        atrasados: 4,
+        semAgendamento: 2,
+        proximosDescartes: 0,
+        statusVolumes: [{ status: "FINALIZADA", count: 3 }],
+      });
+
+    const screen = render(<SecretaryDashboardScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Cliente 0")).toBeTruthy();
+    });
+
+    fireEvent(screen.getByTestId("dashboard-order-list"), "refresh");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("status-volumes-panel")).toBeTruthy();
+    });
+  });
+
+  it("erro 403 exibe mensagem de acesso negado", async () => {
+    mockGetDashboardOrders.mockRejectedValueOnce(new Error("forbidden"));
+    mockGetDashboardErrorMessage.mockReturnValue(
+      "Seu perfil nao possui acesso ao dashboard da secretaria.",
+    );
+
+    const screen = render(<SecretaryDashboardScreen />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Seu perfil nao possui acesso ao dashboard da secretaria."),
+      ).toBeTruthy();
     });
   });
 
